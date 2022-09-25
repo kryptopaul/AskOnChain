@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { HeaderResponsive } from "../Header";
-import { Container, SimpleGrid, Stack } from "@mantine/core";
+import { Container, SimpleGrid } from "@mantine/core";
 import { ethers } from "ethers";
 import askonchain from "../utils/AskOnChain.json";
 import {useState, useEffect} from 'react';
@@ -58,6 +58,7 @@ export function Profile() {
     useEffect(() => {
         fetchProfileInfo();
         fetchAnsweredQuestions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
