@@ -14,10 +14,10 @@ export function AnsweredQuestion(props: AnsweredQuestionProps) {
             <Paper shadow="xl" p="xl" withBorder>
                 <Text size={'xs'} style={{marginBottom: '5px'}}>From: {from}</Text>
                 <Text size={'md'}>
-                    {question}
+                    {"Q: " + question}
                 </Text>
                 <Text size={'lg'}>
-                    {answer}
+                    {"A: " + answer}
                 </Text>
             </Paper>
 
