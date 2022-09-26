@@ -58,7 +58,6 @@ function App() {
       console.log("Connected", accounts[0]);
       setGlobalState("currentAccount", accounts[0]);
       setGlobalState("isLoggedIn", true);
-      fetchQuestionAmount();
     } catch (error) {
       console.log(error)
     }
@@ -81,6 +80,7 @@ function App() {
 
   useEffect(() => {
     checkIfWalletIsConnected();
+    fetchQuestionAmount();
 
     if(window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -90,7 +90,7 @@ function App() {
         window.location.reload();
       })
   }
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function LoginPanel(){
