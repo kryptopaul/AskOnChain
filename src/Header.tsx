@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createStyles, Header, Container, Group, Burger, Paper, Transition, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { Link } from 'react-router-dom';
 
 const HEADER_HEIGHT = 60;
 
@@ -78,29 +79,28 @@ interface HeaderResponsiveProps {
 }
 
 export function HeaderResponsive({ links }: HeaderResponsiveProps) {
-  const [opened, { toggle, close }] = useDisclosure(false);
-  const [active, setActive] = useState(links[0].link);
+  const [opened, { toggle }] = useDisclosure(false);
+  const [active] = useState(links[0].link);
   const { classes, cx } = useStyles();
 
+
+  // Change later if you add more items to the header
   const items = links.map((link) => (
+    <Link to='/' style={{textDecoration: 'none'}}>
     <a
       key={link.label}
       href={link.link}
       className={cx(classes.link, { [classes.linkActive]: active === link.link })}
-      onClick={(event) => {
-        event.preventDefault();
-        setActive(link.link);
-        close();
-      }}
     >
       {link.label}
     </a>
+    </Link>
   ));
 
   return (
     <Header height={HEADER_HEIGHT} mb={120} className={classes.root}>
       <Container className={classes.header}>
-        <Title>AskOnChain</Title>
+        <Link to='/' style={{textDecoration: 'none', color:'black'}}><Title>AskOnChain</Title></Link>
         <Group spacing={5} className={classes.links}>
           {items}
         </Group>
