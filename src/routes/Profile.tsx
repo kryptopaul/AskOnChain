@@ -7,6 +7,7 @@ import {useState, useEffect} from 'react';
 import config from '../utils/config.json';
 import { UserDisplay } from "../UserDisplay";
 import { AnsweredQuestion } from "../AnsweredQuestion";
+import { FooterSimple } from "../FooterSimple";
 
 export function Profile() {
 
@@ -80,6 +81,7 @@ export function Profile() {
         })}
         </SimpleGrid>
         </Container>
+        <FooterSimple links={[{link: '/', label: 'Dashboard'}]} />
         </>
     )
 }
