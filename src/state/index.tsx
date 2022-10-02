@@ -8,7 +8,12 @@ const { setGlobalState, useGlobalState } = createGlobalState({
 
     // Controls for the "Did you know?" alert
     totalQuestions: "",
-    displayTotalHellosAlert: 'flex'
+    displayTotalHellosAlert: 'flex',
+
+    // Responsible for ask a question modal
+    displayModal: false,
+    currentlyVisitedAddress: "",
+    currentlyVisitedUsername: ""
 })
 
 export { setGlobalState, useGlobalState };

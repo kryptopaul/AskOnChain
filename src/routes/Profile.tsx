@@ -8,24 +8,25 @@ import config from '../utils/config.json';
 import { UserDisplay } from "../UserDisplay";
 import { AnsweredQuestion } from "../AnsweredQuestion";
 import { FooterSimple } from "../FooterSimple";
+import { setGlobalState, useGlobalState } from "../state";
 
 export function Profile() {
 
     const { address } = useParams();
+
     const publicEndpoint = config.publicEndpoint;
     const contractAddress = config.contractAddress;
     const contractABI = askonchain.abi;
-
-    const [username, setUsername] = useState("");
+    const [username] = useGlobalState("currentlyVisitedUsername");
     const [answeredQuestionsState , setAnsweredQuestionsState] = useState([] as AnsweredQuestionProps[]);
+    const [currentlyLoggedIn] = useGlobalState("currentAccount");
 
     const fetchProfileInfo = async () => {
         try {
             const provider = new ethers.providers.JsonRpcProvider(publicEndpoint);
             const helloContract = new ethers.Contract(contractAddress, contractABI, provider);
             const username = await helloContract.usernames(address);
-            console.log(username);
-            setUsername(username);
+            setGlobalState("currentlyVisitedUsername", username as string);
         } catch(e) {
             console.log("Error: ", e);
         }
@@ -59,6 +60,8 @@ export function Profile() {
     useEffect(() => {
         fetchProfileInfo();
         fetchAnsweredQuestions();
+        setGlobalState("currentlyVisitedAddress", address as string);
+    
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -77,7 +80,7 @@ export function Profile() {
             ]
         }>
         {answeredQuestionsState.map((question) => {
-            return <AnsweredQuestion id={question.id} question={question.question} answer={question.answer} from={question.from}/>
+            return <AnsweredQuestion key={question.id} id={question.id} question={question.question} answer={question.answer} from={question.from}/>
         })}
         </SimpleGrid>
         </Container>

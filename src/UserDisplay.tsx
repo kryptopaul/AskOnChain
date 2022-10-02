@@ -1,4 +1,6 @@
 import { Avatar, Text, Button, Paper } from '@mantine/core';
+import { setGlobalState} from './state';
+import {AskModal} from './modalComponents/AskModal';
 
 interface UserInfoActionProps {
   username: string | undefined;
@@ -7,6 +9,8 @@ interface UserInfoActionProps {
 
 export function UserDisplay({ username, address }: UserInfoActionProps) {
   return (
+    <>
+    <AskModal />
     <Paper
       radius="md"
       withBorder
@@ -24,9 +28,10 @@ export function UserDisplay({ username, address }: UserInfoActionProps) {
         {address}
       </Text>
 
-      <Button color="pink" fullWidth mt={'md'}>
+      <Button color="pink" fullWidth mt={'md'} onClick={() => setGlobalState('displayModal', true)} >
         Ask
       </Button>
     </Paper>
+    </>
   );
 }
