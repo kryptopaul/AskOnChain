@@ -7,7 +7,7 @@ import { SameWallet } from './SameWallet';
 
 export function AskModal() {
   const [loggedIn] = useGlobalState("isLoggedIn");
-  const [opened, setOpened] = useGlobalState('displayModal');
+  const [opened] = useGlobalState('displayModal');
   const [currentlyVisitedAddress] = useGlobalState("currentlyVisitedAddress");
   const [currentlyVisitedUsername] = useGlobalState("currentlyVisitedUsername");
   const [currentAccount] = useGlobalState("currentAccount");
@@ -19,7 +19,7 @@ export function AskModal() {
         onClose={() => setGlobalState('displayModal', false)}
         title={loggedIn ? `Ask ${currentlyVisitedUsername} a question` : "Please login"}
       >
-        {loggedIn ? (currentAccount == currentlyVisitedAddress) ? <SameWallet /> : <Question /> : <Login />}
+        {loggedIn ? (currentAccount === currentlyVisitedAddress) ? <SameWallet /> : <Question /> : <Login />}
       </Modal>
     </>
   );

@@ -15,7 +15,7 @@ export function Question() {
     const [loading , setLoading] = useState(false);
 
     const handleQuestionSubmission = async () => {
-        if (question == "") {
+        if (question === "") {
             alert("Question cannot be empty");
             return;
         }

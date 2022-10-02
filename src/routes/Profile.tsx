@@ -19,7 +19,6 @@ export function Profile() {
     const contractABI = askonchain.abi;
     const [username] = useGlobalState("currentlyVisitedUsername");
     const [answeredQuestionsState , setAnsweredQuestionsState] = useState([] as AnsweredQuestionProps[]);
-    const [currentlyLoggedIn] = useGlobalState("currentAccount");
 
     const fetchProfileInfo = async () => {
         try {
