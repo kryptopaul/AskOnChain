@@ -14,6 +14,7 @@ export function PendingQuestion(props:PendingQuestionProps) {
     const contractABI = askOnChain.abi;
 
     const [answerField, setAnswerField] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const answerQuestion = async () => {
         console.log("Answering question " + id);
@@ -25,10 +26,13 @@ export function PendingQuestion(props:PendingQuestionProps) {
                 const askonchainContract = new ethers.Contract(contractAddress, contractABI, signer);
                 console.log("Answering: " + answerField + " to question ID: " + id);
                 const data = await askonchainContract.answerQuestion(id, answerField);
+                setLoading(true);
                 await data.wait();
                 console.log("Answered!");
+                setLoading(false);
             } else {
                 console.log("Ethereum object doesn't exist!")
+                setLoading(false);
             }
         } catch(e) {
             console.log("Error: ", e);
@@ -43,8 +47,8 @@ export function PendingQuestion(props:PendingQuestionProps) {
                 <Text>
                     {question}
                 </Text>
-                <Input placeholder="Answer" onInput={(e: React.ChangeEvent<HTMLInputElement>) => setAnswerField(e.target.value)} style={{marginTop: '5px'}} />
-                <Button color={'pink'} onClick={answerQuestion} mt="md">Answer</Button>
+                <Input disabled={loading} placeholder="Answer" onInput={(e: React.ChangeEvent<HTMLInputElement>) => setAnswerField(e.target.value)} style={{marginTop: '5px'}} />
+                <Button loading={loading} color={'pink'} onClick={answerQuestion} mt="md">Answer</Button>
             </Paper>
 
 
