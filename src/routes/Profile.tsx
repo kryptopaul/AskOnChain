@@ -1,45 +1,60 @@
 import { useParams } from "react-router-dom";
 import { HeaderResponsive } from "../Header";
 import { Container, SimpleGrid } from "@mantine/core";
-import { ethers } from "ethers";
 import askonchain from "../utils/AskOnChain.json";
-import {useState, useEffect} from 'react';
+import { useState } from 'react';
 import config from '../utils/config.json';
 import { UserDisplay } from "../UserDisplay";
 import { AnsweredQuestion } from "../AnsweredQuestion";
 import { FooterSimple } from "../FooterSimple";
-import { setGlobalState, useGlobalState } from "../state";
+import { useContractReads } from 'wagmi'
+
 
 export function Profile() {
 
     const { address } = useParams();
+    
 
-    const publicEndpoint = config.publicEndpoint;
-    const contractAddress = config.contractAddress;
-    const contractABI = askonchain.abi;
-    const [username] = useGlobalState("currentlyVisitedUsername");
+    const askonchainContract = {
+        addressOrName: config.contractAddress,
+        contractInteface: askonchain.abi
+    }
+    // eslint-disable-next-line no-empty-pattern
+    const {} = useContractReads({
+        contracts: [
+            // Fetch Username and set State
+            {
+                ...askonchainContract,
+                functionName: 'usernames',
+                args: [address],
+                contractInterface: askonchainContract.contractInteface,
+                chainId: 5
+            },
+            {
+                ...askonchainContract,
+                functionName: 'getQuestionsByUserReceived',
+                args: [address],
+                contractInterface: askonchainContract.contractInteface,
+                chainId: 5
+            }
+        ],
+        onSuccess(data) {
+            setUsername(data[0])
+            renderAnsweredQuestions(data[1])    
+        },
+        onError(error) {
+            console.log(error)
+        }
+    })
+
+    const [username, setUsername] = useState("") as any;
     const [answeredQuestionsState , setAnsweredQuestionsState] = useState([] as AnsweredQuestionProps[]);
 
-    const fetchProfileInfo = async () => {
+
+
+    const renderAnsweredQuestions = async (data:any) => {
         try {
-            const provider = new ethers.providers.JsonRpcProvider(publicEndpoint);
-            const helloContract = new ethers.Contract(contractAddress, contractABI, provider);
-            const username = await helloContract.usernames(address);
-            setGlobalState("currentlyVisitedUsername", username as string);
-        } catch(e) {
-            console.log("Error: ", e);
-        }
-    }
-
-
-    const fetchAnsweredQuestions = async () => {
-        try {
-            const provider = new ethers.providers.JsonRpcProvider(publicEndpoint);
-            const helloContract = new ethers.Contract(contractAddress, contractABI, provider);
-            const answeredQuestions = await helloContract.getQuestionsByUserReceived(address);
-            console.log("Printing only answered questions:");
-
-            answeredQuestions.forEach((question:any) => {
+            data.forEach((question:any) => {
                 if (question.isAnswered) {
                     console.log(question);
                     setAnsweredQuestionsState((prev) => [...prev, {id: question.id.toNumber(), from: question.from, question: question.question, answer: question.answer}]);
@@ -56,13 +71,6 @@ export function Profile() {
         }
     }
 
-    useEffect(() => {
-        fetchProfileInfo();
-        fetchAnsweredQuestions();
-        setGlobalState("currentlyVisitedAddress", address as string);
-    
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <>

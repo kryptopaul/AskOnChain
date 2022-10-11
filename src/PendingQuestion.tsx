@@ -1,42 +1,59 @@
 import { Paper, Text, Input, Button } from "@mantine/core"
-import { ethers } from "ethers";
-import config from "./utils/config.json";
+import configFile from "./utils/config.json";
 import { useState } from "react";
 import askOnChain from "./utils/AskOnChain.json";
+import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
 
 export function PendingQuestion(props:PendingQuestionProps) {
+
+
 
     const id = props.id;
     const from = props.from;
     const question = props.question;
     
-    const contractAddress = config.contractAddress;
-    const contractABI = askOnChain.abi;
 
     const [answerField, setAnswerField] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const answerQuestion = async () => {
-        console.log("Answering question " + id);
-        try {
-            const { ethereum } = window;
-            if (ethereum) {
-                const provider = new ethers.providers.Web3Provider(ethereum);
-                const signer = provider.getSigner();
-                const askonchainContract = new ethers.Contract(contractAddress, contractABI, signer);
-                console.log("Answering: " + answerField + " to question ID: " + id);
-                const data = await askonchainContract.answerQuestion(id, answerField);
-                setLoading(true);
-                await data.wait();
-                console.log("Answered!");
-                setLoading(false);
-            } else {
-                console.log("Ethereum object doesn't exist!")
-                setLoading(false);
-            }
-        } catch(e) {
-            console.log("Error: ", e);
+    const { config } = usePrepareContractWrite({
+        addressOrName: configFile.contractAddress,
+        contractInterface: askOnChain.abi,
+        functionName: 'answerQuestion',
+        args: [id, answerField],
+        chainId: 5
+      })
+
+    const { data, write } = useContractWrite({...config,
+        onError(error) {
+            setLoading(false);
+            alert("Error: " + error);
+        },
+        })
+
+    // eslint-disable-next-line no-empty-pattern
+    const {} = useWaitForTransaction({
+        chainId: 5,
+        hash: data?.hash,
+        onSuccess(data) {
+            setLoading(false);
+            alert("Answer submitted successfully!");
+            window.location.reload();
+        },
+        onError(error) {
+            setLoading(false);
+            alert("Error: " + error);
         }
+    })
+
+    const answerQuestion = async () => {
+        // Validate first
+        if (answerField === "") {
+            alert("Please enter an answer to the question");
+            return;
+        }
+        setLoading(true);
+        write?.();
 
     }
 

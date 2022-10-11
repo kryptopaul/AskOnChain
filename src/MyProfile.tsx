@@ -1,68 +1,68 @@
 import { Container, Title, Text, Input, Button, Notification, SimpleGrid } from '@mantine/core';
-import {setGlobalState, useGlobalState} from './state';
+import { setGlobalState } from './state';
 import { ethers } from 'ethers';
 import askonchain from './utils/AskOnChain.json';
 import { Alert } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import config from './utils/config.json';
 import { useNavigate } from "react-router-dom";
 import { PendingQuestion } from './PendingQuestion';
 import { AnsweredQuestion } from './AnsweredQuestion';
+import { useAccount, useDisconnect, useContractReads } from 'wagmi';
 
 export function MyProfile(){
+
+    const { address } = useAccount()
+    const { disconnect } = useDisconnect()
+
+    const askonchainContract = {
+        addressOrName: config.contractAddress,
+        contractInteface: askonchain.abi
+    }
+
+    // eslint-disable-next-line no-empty-pattern
+    const {} = useContractReads({
+        contracts: [
+            {
+                ...askonchainContract,
+                functionName: 'usernames',
+                args: [address],
+                contractInterface: askonchainContract.contractInteface,
+            },
+            {
+                ...askonchainContract,
+                functionName: 'getQuestionsByUserReceived',
+                args: [address],
+                contractInterface: askonchainContract.contractInteface,
+            },
+            {
+                ...askonchainContract,
+                functionName: 'totalQuestions',
+                contractInterface: askonchainContract.contractInteface,
+            }
+        ],
+        onSuccess(data) {
+            setUsernameDisplayed(data[0])
+            displayUserQuestions(data[1])
+            setTotalQuestionsMessage(`Our users have asked ${data[2]} questions so far!`)
+        },
+    })
+    
+
     const navigate = useNavigate();
 
     const [usernameField, setUsernameField] = useState("");
     const [successNotification, setSuccessNotification] = useState({visibility: 'none', loading: false, title: "", message: ""});
+    const [usernameDisplayed, setUsernameDisplayed] = useState("") as any;
 
     const contractAddress = config.contractAddress;
     const contractABI = askonchain.abi;
 
-    const [displayTotalHellosAlert] = useGlobalState("displayTotalHellosAlert");
-    const [totalQuestions] = useGlobalState("totalQuestions");
-    const [currentAccount] = useGlobalState("currentAccount");
-    const [accountUsername] = useGlobalState("accountUsername");
-
-    useEffect(() => {
-        fetchUsername();
-        fetchUserQuestions();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const [displayTotalHellosAlert, setDisplayTotalHellosAlert] = useState('flex');
+    const [totalQuestionsMessage, setTotalQuestionsMessage] = useState("") as any;
 
 
-    const logOut = async () => {
-        try {
-          const { ethereum } = window;
-          if (ethereum) {
-            setGlobalState("currentAccount", "");
-            setGlobalState("isLoggedIn", false);
-            setGlobalState("accountUsername", "");
-          } else {
-            console.log("Ethereum object doesn't exist!")
-          }
-        } catch (error) {
-          console.log("Error: ", error);
-        }
-      }
-
-    const fetchUsername = async () => {
-        try {
-            const { ethereum } = window;
-            if (ethereum) {
-                const provider = new ethers.providers.Web3Provider(ethereum);
-                const signer = provider.getSigner();
-                const askonchainContract = new ethers.Contract(contractAddress, contractABI, signer);
-                const data = await askonchainContract.usernames(currentAccount);
-                console.log(data);
-                setGlobalState("accountUsername", data);
-            } else {
-                console.log("Ethereum object doesn't exist!")
-            }
-        } catch (error) {
-            console.log("Error: ", error);
-        }
-    }
 
     const setNewUsername = async () => {
         if (usernameField === "") {
@@ -89,18 +89,10 @@ export function MyProfile(){
         }
     }
 
-    const fetchUserQuestions = async () => {
-        try {
-            const { ethereum } = window;
-            if (ethereum) {
-                const provider = new ethers.providers.Web3Provider(ethereum);
-                const signer = provider.getSigner();
-                const askonchainContract = new ethers.Contract(contractAddress, contractABI, signer);
-                console.log("Fetching user questions..." + currentAccount);
-                const data = await askonchainContract.getQuestionsByUserReceived(currentAccount);
-                console.log(data);
+    const displayUserQuestions = async (data:any) => {
 
-                data.forEach((question: any) => {
+        if (data){        
+        data.forEach((question: any) => {
                     console.log("ID:" + question[0].toNumber());
                     console.log("From: " + question[1]);
                     console.log("Question: " + question[2]);
@@ -130,15 +122,13 @@ export function MyProfile(){
                         setAnsweredQuestions((prev) => [...prev, propPayload]);
                     }
                 });
-                // This is done to sort the questions from newest to oldest
-                setPendingQuestions((prev) => prev.reverse());
-                setAnsweredQuestions((prev) => prev.reverse());
-            } else {
-                console.log("Ethereum object doesn't exist!")
-            }
-        } catch (error) {
-            console.log("Error: ", error);
+            // This is done to sort the questions from newest to oldest
+            setPendingQuestions((prev) => prev.reverse());
+            setAnsweredQuestions((prev) => prev.reverse());
+        } else {
+            console.log("Data is null!");
         }
+
     }
 
     const [pendingQuestions, setPendingQuestions] = useState([] as PendingQuestionProps[]);
@@ -146,15 +136,15 @@ export function MyProfile(){
 
     return(
         <Container style={{textAlign: 'left'}}>
-            <Alert icon={<IconAlertCircle size={16} />} style={{textAlign: 'left', marginBottom: '20px', marginTop: '-50px', display: displayTotalHellosAlert}} title="Did you know?" color="pink" radius="xs" variant='filled' onClose={() => setGlobalState('displayTotalHellosAlert', 'none')} withCloseButton>
-            {totalQuestions}
+            <Alert icon={<IconAlertCircle size={16} />} style={{textAlign: 'left', marginBottom: '20px', marginTop: '-50px', display: displayTotalHellosAlert}} title="Did you know?" color="pink" radius="xs" variant='filled' onClose={() => setDisplayTotalHellosAlert('none')} withCloseButton>
+            {totalQuestionsMessage}
             </Alert>
-            <Title>{accountUsername ? `Welcome back, ${accountUsername}!` : "Welcome!"}</Title>
-            <Text>You're logged in as: {currentAccount}</Text>
-            <Button color={"pink"} style={{marginTop: '10px'}} onClick={() => navigate(`/${currentAccount}`)}>View my profile</Button>
-            <Button color={"pink"} style={{marginTop: '10px', marginLeft: '10px'}} onClick={logOut}>Log out</Button>
+            <Title>{usernameDisplayed ? `Welcome back, ${usernameDisplayed}!` : "Welcome!"}</Title>
+            <Text>You're logged in as: {address}</Text>
+            <Button color={"pink"} style={{marginTop: '10px'}} onClick={() => navigate(`/${address}`)}>View my profile</Button>
+            <Button color={"pink"} style={{marginTop: '10px', marginLeft: '10px'}} onClick={() => disconnect()}>Log out</Button>
             <div style={{textAlign: 'left'}}>
-            <Title order={2} style={{marginTop: '15px'}}>{accountUsername ? "Change your username!" : "Set your username to make your profile visible!"}</Title>
+            <Title order={2} style={{marginTop: '15px'}}>{usernameDisplayed ? "Change your username!" : "Set your username to make your profile visible!"}</Title>
             <Input placeholder="Enter your username" onInput={(e: React.ChangeEvent<HTMLInputElement>) => setUsernameField(e.target.value)} style={{marginTop: '10px'}} />
             <Button color={"pink"} style={{marginTop: '10px'}} onClick={setNewUsername}>Set username</Button>
             </div>

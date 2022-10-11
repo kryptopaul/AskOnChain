@@ -1,33 +1,28 @@
-
-import { setGlobalState } from "../state";
 import { Button } from '@mantine/core';
+import { useConnect } from "wagmi";
 
 export function Login() {
 
+    const { connect, connectors, isLoading, pendingConnector } = useConnect()
 
-    const connectWallet = async () => {
-        try {
-          const { ethereum } = window;
-    
-          if (!ethereum) {
-            alert("Get MetaMask!");
-            return;
-          }
-    
-          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-    
-          console.log("Connected", accounts[0]);
-          setGlobalState("currentAccount", accounts[0]);
-          setGlobalState("isLoggedIn", true);
-        } catch (error) {
-          console.log(error)
-        }
-      }
+
 
     return(
         <div>
-            <h2>Please login</h2>
-            <Button onClick={connectWallet} color={'pink'}>Connect Wallet</Button>
+            {connectors.map((connector) => (
+        <Button
+          disabled={!connector.ready}
+          key={connector.id}
+          onClick={() => connect({ connector })}
+          style={{marginTop: '10px'}}
+        >
+          Login
+          {!connector.ready && ' (unsupported)'}
+          {isLoading &&
+            connector.id === pendingConnector?.id &&
+            ' (connecting)'}
+        </Button>
+      ))}
         </div>
     )
 }

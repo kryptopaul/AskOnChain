@@ -100,7 +100,7 @@ export function HeaderResponsive({ links }: HeaderResponsiveProps) {
   return (
     <Header height={HEADER_HEIGHT} mb={120} className={classes.root}>
       <Container className={classes.header}>
-        <Link to='/' style={{textDecoration: 'none', color:'black'}}><Title>AskOnChain</Title></Link>
+        <Link to='/' style={{textDecoration: 'none', color:'white'}}><Title>AskOnChain</Title></Link>
         <Group spacing={5} className={classes.links}>
           {items}
         </Group>

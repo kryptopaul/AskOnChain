@@ -3,23 +3,28 @@ import { useGlobalState, setGlobalState } from '../state';
 import { Login } from './Login';
 import { Question } from './Question';
 import { SameWallet } from './SameWallet';
+import { useAccount } from 'wagmi'
 
 
-export function AskModal() {
-  const [loggedIn] = useGlobalState("isLoggedIn");
+export function AskModal(props: RequestedAddress) {
+
+  const { address } = useAccount()
+
   const [opened] = useGlobalState('displayModal');
-  const [currentlyVisitedAddress] = useGlobalState("currentlyVisitedAddress");
   const [currentlyVisitedUsername] = useGlobalState("currentlyVisitedUsername");
-  const [currentAccount] = useGlobalState("currentAccount");
+
   
+  console.log('Requested: ' + props.address);
+  console.log('Logged in as: ' + address);
   return (
     <>
       <Modal
         opened={opened}
         onClose={() => setGlobalState('displayModal', false)}
-        title={loggedIn ? `Ask ${currentlyVisitedUsername} a question` : "Please login"}
+        title={address ? `Ask ${currentlyVisitedUsername} a question` : "Please login"}
+        closeOnClickOutside={false}
       >
-        {loggedIn ? (currentAccount === currentlyVisitedAddress) ? <SameWallet /> : <Question /> : <Login />}
+        {address ? (address === props.address) ? <SameWallet /> : <Question address={props.address} /> : <Login />}
       </Modal>
     </>
   );

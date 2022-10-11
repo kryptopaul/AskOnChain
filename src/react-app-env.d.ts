@@ -15,3 +15,7 @@ interface AnsweredQuestionProps {
     question: string;
     answer: string;
 }
+
+interface RequestedAddress {
+    address: string | undefined;
+}

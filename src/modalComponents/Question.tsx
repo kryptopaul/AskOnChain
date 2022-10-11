@@ -1,45 +1,61 @@
 import {Input, Button} from '@mantine/core';
 import { useState } from 'react';
-import { useGlobalState } from '../state';
-import { ethers } from "ethers";
-import config from '../utils/config.json';
+import configFile from '../utils/config.json';
 import askOnChain from '../utils/AskOnChain.json';
+import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
 
-export function Question() {
+export function Question(props: RequestedAddress) {
 
     const [question, setQuestion] = useState("");
-    const [currentlyVisitedAddress] = useGlobalState("currentlyVisitedAddress");
-    const contractAddress = config.contractAddress;
-    const contractABI = askOnChain.abi;
+
+
+
 
     const [loading , setLoading] = useState(false);
+
+    const { config } = usePrepareContractWrite({
+        addressOrName: configFile.contractAddress,
+        contractInterface: askOnChain.abi,
+        functionName: 'submitQuestion',
+        chainId: 5,
+        args: [props.address, question]
+      })
+
+    const { data, write } = useContractWrite({...config,
+    onError(error) {
+
+        setLoading(false);
+        alert("Error: " + error);
+        window.location.reload();
+    }
+    })
+    // eslint-disable-next-line no-empty-pattern
+    const {} = useWaitForTransaction({
+        chainId: 5,
+        hash: data?.hash,
+        onSuccess(data) {
+            setLoading(false);
+            alert("Question asked successfully!");
+            window.location.reload();
+        },
+        onError(error) {
+            setLoading(false);
+            alert("Error: " + error);
+        }
+    })
 
     const handleQuestionSubmission = async () => {
         if (question === "") {
             alert("Question cannot be empty");
             return;
         }
-
         try {
-            const { ethereum } = window;
-            if (ethereum) {
-                const provider = new ethers.providers.Web3Provider(ethereum);
-                const signer = provider.getSigner();
-                const askonchainContract = new ethers.Contract(contractAddress, contractABI, signer);
-                console.log(`Submitting question ${question} to ${currentlyVisitedAddress}`);
-                const data = await askonchainContract.submitQuestion(currentlyVisitedAddress, question);
-                setLoading(true);
-                await data.wait();
-                console.log("Submitted!");
-                setLoading(false);
-            } else {
-                console.log("Ethereum object doesn't exist!")
-            }
-        } catch(e) {
-            console.log("Error: ", e);
+            write?.();
+            setLoading(true);
+        } catch (e) {
             setLoading(false);
+            alert("Error: " + e);
         }
-
     }
 
     return (

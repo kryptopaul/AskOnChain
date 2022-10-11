@@ -8,9 +8,10 @@ interface UserInfoActionProps {
 }
 
 export function UserDisplay({ username, address }: UserInfoActionProps) {
+  console.log('UserDisplay: ' + address);
   return (
     <>
-    <AskModal />
+    <AskModal address={address} />
     <Paper
       radius="md"
       withBorder
