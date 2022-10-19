@@ -3,6 +3,8 @@ import { HeaderResponsive } from './Header';
 import { MyProfile } from './MyProfile';
 import { FooterSimple } from './FooterSimple';
 import { useAccount, useConnect } from 'wagmi'
+import { Registration } from './Registration';
+
 
 function App() {
 
@@ -45,7 +47,11 @@ function App() {
     <>
         <HeaderResponsive links={[{link: '/', label: 'Dashboard'}]}/>
         {isConnected ? <MyProfile /> : <LoginPanel/>}
+        {/* <Container>
+        <Registration />
+        </Container> */}
         <FooterSimple links={[{link: '/', label: 'Dashboard'}]} />
+        
     </>
   );
 }
